@@ -1,0 +1,37 @@
+---
+title: "Automated Machine Learning with H2O"
+author: "Amin Raza"
+
+output: 
+    html_document:
+        code_folding: hide
+---
+
+```{r setup, include=FALSE, warning=FALSE}
+knitr::opts_chunk$set(
+    echo = TRUE,
+    message = FALSE,
+    warning = FALSE
+    )
+```
+
+# Challenge Part 1
+
+In this challenge the task was to answer questions with the help of the plots that were generated.
+In order to Answer the questions we need the following 6 plots
+
+*Compensation Features
+
+*Survey Results
+
+*Performance Data
+
+*Work-Life Features
+
+*Training and Education
+
+*Time-Based Features
+
+## Compensation Features
+
+![compensation_features](03_automated_ML_h2o_files/Compensation_features.pdf)

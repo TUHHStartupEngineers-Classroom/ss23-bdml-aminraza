@@ -1,0 +1,18 @@
+{
+  "hash": "61b36493c05487bc70bbd1f378c71ad5",
+  "result": {
+    "markdown": "---\ntitle: \"Automated Machine Learning with H2O\"\nauthor: \"Amin Raza\"\n\noutput: \n    html_document:\n        code_folding: hide\n---\n\n\n\n\n# Challenge Part 1\n\nIn this challenge the task was to answer questions with the help of the plots that were generated.\nIn order to Answer the questions we need the following 6 plots\n\n*Compensation Features\n\n*Survey Results\n\n*Performance Data\n\n*Work-Life Features\n\n*Training and Education\n\n*Time-Based Features\n\n## Compensation Features\n\n![compensation_features](03_automated_ML_h2o_files/Compensation_features.pdf)",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {
+      "include-in-header": [
+        "<link href=\"../../site_libs/pagedtable-1.1/css/pagedtable.css\" rel=\"stylesheet\" />\n<script src=\"../../site_libs/pagedtable-1.1/js/pagedtable.js\"></script>\n"
+      ]
+    },
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}
