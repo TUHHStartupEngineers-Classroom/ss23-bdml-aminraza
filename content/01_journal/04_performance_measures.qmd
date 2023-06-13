@@ -92,6 +92,8 @@ leaderboard_sorted <- automl_models_h2o@leaderboard %>%
   select(-c(mean_per_class_error, rmse, mse))
 ```
 
+Here is the leaderboard from the preceded calculation.
+
 ```{r}
 read_csv("04_performance_measures_files/leaderboard_sorted.csv")
 ```
@@ -404,7 +406,8 @@ performance_tbl %>%
 
 ```
 
-![Precesion vs Recall Plot]("04_performance_measures_files/Precision_vs_Recall.jpg")
+![Precesion vs Recall Plot](04_performance_measures_files/precisionrecall.jpg)
+
 
 ## ROC Plot
 
@@ -457,7 +460,7 @@ model_metrics_tbl %>%
 
 ```
 
-![ROC Plot]("04_performance_measures_files/ROC_plot.jpg")
+![ROC Plot](04_performance_measures_files/ROC_Plot.jpg)
 
 You can clearly see, that the GLM Model performs the worst. This no surprise since it was the very last model on the leaderboard. The difference on the other two models however is close to zero. 
 
@@ -503,7 +506,7 @@ model_metrics_tbl_2 %>%
 
 ```
 
-![ROC Plot]("04_performance_measures_files/Precision_vs_Recall_Plot2.jpg")
+![ROC Plot](04_performance_measures_files/Precision_vs_Recall_Plot2.jpg)
 
 Same here. GLM in comparison performs the worst.
 
