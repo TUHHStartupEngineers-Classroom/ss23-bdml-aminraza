@@ -20,18 +20,187 @@ knitr::opts_chunk$set(
 In this challenge the task was to answer questions with the help of the plots that were generated.
 In order to Answer the questions we need the following 6 plots
 
-*Compensation Features
+* Compensation Features
 
-*Survey Results
+* Survey Results
 
-*Performance Data
+* Performance Data
 
-*Work-Life Features
+* Work-Life Features
 
-*Training and Education
+* Training and Education
 
-*Time-Based Features
+* Time-Based Features
 
 ## Compensation Features
 
-![compensation_features](03_automated_ML_h2o_files/Compensation_features.pdf)
+![Compensation Features](03_automated_ML_h2o_files/Compensation_features.jpg)
+
+Questions:
+
+1. What can you deduce about the interaction between Monthly Income and Attrition?
+
+***Answer: Those that are leaving have a lower Monthly Income***
+
+2. What can you deduce about the interaction between Percent Salary Hike and Attrition?
+
+***Answer: Those that are leaving have lower Percent Salary Hike***
+
+3. What can you deduce about the interaction between Stock Option Level and Attrition?
+
+***Answer: It's difficult to deduce anything based on the visualization***
+
+## Survey Results
+
+![Survey Results](03_automated_ML_h2o_files/Survey_results.jpg)
+
+Questions:
+
+4. What can you deduce about the interaction between Environment Satisfaction and Attrition?
+
+***Answer: A higher proportion of those leaving have a low environment satisfaction level***
+
+5. What can you deduce about the interaction between Work Life Balance and Attrition?
+
+***Answer: Those that are staying have a higher density of 2's and 3's***
+
+## Performance Data
+
+![Performance Data](03_automated_ML_h2o_files/Performance_data.jpg)
+
+Questions:
+
+6. What Can you deduce about the interaction between Job Involvement and Attrition?
+
+***Answer: Those that are leaving have a lower density of 3's and 4's***
+
+## Work-Life Features
+
+![Work-Life Features](03_automated_ML_h2o_files/Work-Life_features.jpg)
+
+Questions:
+
+7. What can you deduce about the interaction between Over Time and Attrition?
+
+***Answer: The proportion of those staying that are working Over Time are high compared to those that are not staying***
+
+## Training and Education
+
+![Training and Education](03_automated_ML_h2o_files/Training_and_education.jpg)
+
+Questions:
+
+8. What can you deduce about the interaction between Training Times Last Year and Attrition?
+
+***Answer: It's difficult to deduce anything based on the visualization***
+
+## Time-Based Features
+
+![Time-Based Features](03_automated_ML_h2o_files/Time-Based_features.jpg)
+
+Questions:
+
+9. What can you deduce about the interaction between Years At Company and Attrition?
+
+***Answer: People that leave tend to have less working years at the company***
+
+10. What can you deduce about the interaction between Years Since Last Promotion and Attrition?
+
+***Answer: Those that are leaving have fewer years since last promotion than those that are staying***
+
+
+# Challenge Part 2
+
+In this challenge we predict whether or not a product will be put on backorder status or not.
+
+Load Librarys and data:
+
+```{r}
+library(tidyverse)
+library(readxl)
+library(h2o)
+
+#load data
+product_backorders_tbl <- read_csv("03_automated_ML_h2o_files/product_backorders.csv")
+
+#Split into training and data set
+library(rsample)
+library(recipes)
+h2o.init()
+```
+
+Split in Training and Testing Set
+
+```{r}
+set.seed(seed = 1113)
+split_obj <- rsample::initial_split(product_backorders_tbl, prop = 0.85)
+
+train_tbl <- training(split_obj)
+test_tbl  <- testing(split_obj)
+```
+
+Prepare recipe and choose predictors
+
+```{r}
+recipe_obj <- recipe(went_on_backorder ~., data = train_tbl) %>% 
+  prep()
+
+train_tbl <- bake(recipe_obj, new_data = train_tbl)
+test_tbl  <- bake(recipe_obj, new_data = test_tbl)
+```
+
+Compute the models (Code executed in another enviroment)
+
+```{r}
+# Modeling
+h2o.init()
+
+# Split data into a training and a validation data frame
+# Setting the seed is just for reproducability
+split_h2o <- h2o.splitFrame(as.h2o(train_tbl), ratios = c(0.85), seed = 1234)
+train_h2o <- split_h2o[[1]]
+valid_h2o <- split_h2o[[2]]
+test_h2o  <- as.h2o(test_tbl)
+
+# Set the target and predictors
+y <- "went_on_backorder"
+x <- setdiff(names(train_h2o), y)
+
+#Compute the models
+
+automl_models_h2o <- h2o.automl(
+  x = x,
+  y = y,
+  training_frame    = train_h2o,
+  validation_frame  = valid_h2o,
+  leaderboard_frame = test_h2o,
+  max_runtime_secs  = 30,
+  nfolds            = 5 
+)
+
+my_leaderboard <- as.tibble(automl_models_h2o@leaderboard)
+```
+
+Leaderboard
+
+```{r}
+#View the leaderboard
+my_leaderboard <- as.tibble(automl_models_h2o@leaderboard)
+
+my_leaderboard
+```
+
+We will save the best model and use it to predict our values.
+
+Load the model and predict with it.
+
+```{r}
+#load model an predict
+model_h2o <- h2o.loadModel("99_models/h2o_models/StackedEnsemble_BestOfFamily_2_AutoML_3_20230612_182510")
+
+predictions <- h2o.predict(model_h2o, newdata = as.h2o(test_tbl))
+
+predictions_tbl <- predictions %>% as_tibble()
+
+predictions_tbl
+```
