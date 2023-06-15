@@ -132,7 +132,7 @@ Somehow I can't find the issue now why the features here are sorted differently.
 
 In the picture below, which is an export from the plot from my original code, you can see that the features are ordered right.
 
-![plot_explanations() replica](05_LIME_files/plot_explanations()_replica.jpg)
+![plot_explanations() replica](05_LIME_files/plot_explanations_replica.jpg)
 
 
 In the class notes is my original code with which it worked like I intended it. 
