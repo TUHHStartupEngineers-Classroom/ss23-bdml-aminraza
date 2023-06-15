@@ -266,6 +266,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb4-3"><a href="#cb4-3"></a>  <span class="fu">as_tibble</span>() <span class="sc">%&gt;%</span> </span>
 <span id="cb4-4"><a href="#cb4-4"></a>  <span class="fu">select</span>(<span class="sc">-</span><span class="fu">c</span>(mean_per_class_error, rmse, mse))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>Here is the leaderboard from the preceded calculation.</p>
 <div class="cell" data-hash="04_performance_measures_cache/html/unnamed-chunk-5_099ebcb7e55f969f1cde0d46bcc9e2e8">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="fu">read_csv</span>(<span class="st">"04_performance_measures_files/leaderboard_sorted.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
@@ -344,7 +345,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb10-12"><a href="#cb10-12"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>And the plot looks as follows:</p>
-<p><a href="04_performance_measures_files/data_transformed_tbl_plot.jpg" class="lightbox" data-gallery="quarto-lightbox-gallery-1" title="Leaderboard Metrics"><img src="04_performance_measures_files/data_transformed_tbl_plot.jpg" class="img-fluid" alt="Leaderboard Metrics"></a> I just copied the following code from the business case.</p>
+<p><a href="04_performance_measures_files/data_transformed_tbl_plot.jpg" class="lightbox" title="Leaderboard Metrics" data-gallery="quarto-lightbox-gallery-1"><img src="04_performance_measures_files/data_transformed_tbl_plot.jpg" class="img-fluid" alt="Leaderboard Metrics"></a> I just copied the following code from the business case.</p>
 <div class="cell" data-hash="04_performance_measures_cache/html/unnamed-chunk-9_491f681b1bf2f4a1263cb887cebfac75">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a><span class="co">#Function for what we did above (plotting)</span></span>
 <span id="cb11-2"><a href="#cb11-2"></a>plot_h2o_leaderboard <span class="ot">&lt;-</span> <span class="cf">function</span>(h2o_leaderboard, <span class="at">order_by =</span> <span class="fu">c</span>(<span class="st">"auc"</span>, <span class="st">"logloss"</span>), </span>
@@ -578,7 +579,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb18-42"><a href="#cb18-42"></a>  theme_new</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="quarto-figure quarto-figure-center">
-<figure class="figure"><p><a href="&quot;04_performance_measures_files/Precision_vs_Recall.jpg&quot;" class="lightbox" data-gallery="quarto-lightbox-gallery-2" title="Precesion vs Recall Plot"><img src="&quot;04_performance_measures_files/Precision_vs_Recall.jpg&quot;" class="img-fluid figure-img"></a></p>
+<figure class="figure"><p><a href="04_performance_measures_files/precisionrecall.jpg" class="lightbox" title="Precesion vs Recall Plot" data-gallery="quarto-lightbox-gallery-2"><img src="04_performance_measures_files/precisionrecall.jpg" class="img-fluid figure-img"></a></p>
 <figcaption class="figure-caption">Precesion vs Recall Plot</figcaption></figure>
 </div>
 </section></section><section id="roc-plot" class="level2" data-number="1.4"><h2 data-number="1.4" class="anchored" data-anchor-id="roc-plot">
@@ -629,7 +630,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb19-43"><a href="#cb19-43"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="quarto-figure quarto-figure-center">
-<figure class="figure"><p><a href="&quot;04_performance_measures_files/ROC_plot.jpg&quot;" class="lightbox" data-gallery="quarto-lightbox-gallery-3" title="ROC Plot"><img src="&quot;04_performance_measures_files/ROC_plot.jpg&quot;" class="img-fluid figure-img"></a></p>
+<figure class="figure"><p><a href="04_performance_measures_files/ROC_Plot.jpg" class="lightbox" title="ROC Plot" data-gallery="quarto-lightbox-gallery-3"><img src="04_performance_measures_files/ROC_Plot.jpg" class="img-fluid figure-img"></a></p>
 <figcaption class="figure-caption">ROC Plot</figcaption></figure>
 </div>
 <p>You can clearly see, that the GLM Model performs the worst. This no surprise since it was the very last model on the leaderboard. The difference on the other two models however is close to zero.</p>
@@ -673,7 +674,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb20-35"><a href="#cb20-35"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="quarto-figure quarto-figure-center">
-<figure class="figure"><p><a href="&quot;04_performance_measures_files/Precision_vs_Recall_Plot2.jpg&quot;" class="lightbox" data-gallery="quarto-lightbox-gallery-4" title="ROC Plot"><img src="&quot;04_performance_measures_files/Precision_vs_Recall_Plot2.jpg&quot;" class="img-fluid figure-img"></a></p>
+<figure class="figure"><p><a href="04_performance_measures_files/Precision_vs_Recall_Plot2.jpg" class="lightbox" title="ROC Plot" data-gallery="quarto-lightbox-gallery-4"><img src="04_performance_measures_files/Precision_vs_Recall_Plot2.jpg" class="img-fluid figure-img"></a></p>
 <figcaption class="figure-caption">ROC Plot</figcaption></figure>
 </div>
 <p>Same here. GLM in comparison performs the worst.</p>
@@ -825,7 +826,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <section id="gain-plot" class="level3"><h3 class="anchored" data-anchor-id="gain-plot">Gain Plot</h3>
 <div class="quarto-figure quarto-figure-center">
-<figure class="figure"><p><a href="04_performance_measures_files/Gain_Chart.jpg" class="lightbox" data-gallery="quarto-lightbox-gallery-5" title="Gain Plot"><img src="04_performance_measures_files/Gain_Chart.jpg" class="img-fluid figure-img"></a></p>
+<figure class="figure"><p><a href="04_performance_measures_files/Gain_Chart.jpg" class="lightbox" title="Gain Plot" data-gallery="quarto-lightbox-gallery-5"><img src="04_performance_measures_files/Gain_Chart.jpg" class="img-fluid figure-img"></a></p>
 <figcaption class="figure-caption">Gain Plot</figcaption></figure>
 </div>
 <div class="cell" data-hash="04_performance_measures_cache/html/unnamed-chunk-24_edfbde97c5a8fe40d5d3e18c5905de4d">
@@ -850,7 +851,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </section><section id="lift-plot" class="level3"><h3 class="anchored" data-anchor-id="lift-plot">Lift Plot</h3>
 <div class="quarto-figure quarto-figure-center">
-<figure class="figure"><p><a href="04_performance_measures_files/Lift_Chart.jpg" class="lightbox" data-gallery="quarto-lightbox-gallery-6" title="Gain Plot"><img src="04_performance_measures_files/Lift_Chart.jpg" class="img-fluid figure-img"></a></p>
+<figure class="figure"><p><a href="04_performance_measures_files/Lift_Chart.jpg" class="lightbox" title="Gain Plot" data-gallery="quarto-lightbox-gallery-6"><img src="04_performance_measures_files/Lift_Chart.jpg" class="img-fluid figure-img"></a></p>
 <figcaption class="figure-caption">Gain Plot</figcaption></figure>
 </div>
 </section></section><section id="dashboard-with-cowplot" class="level2" data-number="1.7"><h2 data-number="1.7" class="anchored" data-anchor-id="dashboard-with-cowplot">
@@ -1050,7 +1051,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>And this the beatiful plot we get:</p>
 <div class="quarto-figure quarto-figure-center">
-<figure class="figure"><p><a href="04_performance_measures_files/h2o_model_metrics.jpg" class="lightbox" data-gallery="quarto-lightbox-gallery-7" title="H2O Model Metrics"><img src="04_performance_measures_files/h2o_model_metrics.jpg" class="img-fluid figure-img"></a></p>
+<figure class="figure"><p><a href="04_performance_measures_files/h2o_model_metrics.jpg" class="lightbox" title="H2O Model Metrics" data-gallery="quarto-lightbox-gallery-7"><img src="04_performance_measures_files/h2o_model_metrics.jpg" class="img-fluid figure-img"></a></p>
 <figcaption class="figure-caption">H2O Model Metrics</figcaption></figure>
 </div>
 
@@ -1404,7 +1405,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 });
 </script>
 </div> <!-- /content -->
-<script>var lightboxQuarto = GLightbox({"selector":".lightbox","loop":true,"descPosition":"bottom","openEffect":"zoom","closeEffect":"zoom"});</script>
+<script>var lightboxQuarto = GLightbox({"openEffect":"zoom","loop":true,"descPosition":"bottom","closeEffect":"zoom","selector":".lightbox"});</script>
 
 
 </body></html>
