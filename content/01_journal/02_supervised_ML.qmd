@@ -1,0 +1,157 @@
+---
+title: "Supervised Machine Learning - Regression"
+author: "Amin Raza"
+
+output: 
+    html_document:
+        code_folding: hide
+---
+
+```{r setup, include=FALSE, warning=FALSE}
+knitr::opts_chunk$set(
+    echo = TRUE,
+    message = FALSE,
+    warning = FALSE
+    )
+```
+
+# Challenge
+
+Challenge information taken from the course Website.
+
+## Build a model
+
+Because there were no further instructions we use the model from the business case
+
+```{r}
+#Step 1 - Build a Model
+
+
+library(recipes)
+library(tidyverse)
+library(dplyr)
+library(stringr)
+library(rsample)
+library(workflows)
+library(parsnip)
+
+
+bike_features_tbl <- readRDS("02_supervised_ML_files/bike_features_tbl.rds") %>%
+ select(model, price, frame_material, weight) 
+```
+
+## Create features with the recipes package
+
+As predictors I choose the weight. The outcome shall be the price of the bike.
+I know that weight alone is only a limited factor in predicting a prize, 
+but as I understand it, the Challenge is all about the principle.
+
+```{r}
+# Step 2: Creating Features with recipes package
+
+bike_recipe <- recipe(price ~ weight, data = bike_features_tbl) %>%
+  step_dummy(all_nominal(), -all_outcomes(), one_hot = TRUE) #%>%
+  #step_rename(aluminium = frame_material_aluminium) %>%
+  #step_rename(carbon = frame_material_carbon)
+
+#Apply recipe and bake
+
+bike_baked <- prep(bike_recipe) %>%
+  bake(new_data = bike_features_tbl) %>%
+  mutate(model = bike_features_tbl$model)
+
+#Plot the data we have
+
+ggplot(bike_baked, aes(x = price, y = weight)) +
+  geom_point() +
+  labs(title = "Scatter Plot", x = "Price", y = "Weight")
+
+# Step 3: Splitting into Training and Test Sets
+set.seed(1113)
+split_obj <- initial_split(bike_baked, prop = 0.80)
+
+train_tbl <- training(split_obj)
+test_tbl <- testing(split_obj)
+```
+In the scatter plot you can see that there is no linear relation. 
+Therefore, I calculate not only a linear regression model but also a descision tree and a random forrest model (just because I am curious what the outcome is).
+
+## Bundle the model and recipe with the workflow package
+
+```{r}
+#Bundle the model and recipe with the workflow package
+#linear regression model
+model_01_linear_lm_simple <- linear_reg(mode = "regression")
+
+
+#Create a workflow object using the workflow() function. 
+#Serves as a container for your model and recipe:
+#Model linear regression
+
+workflow_obj <- workflow(bike_recipe, model_01_linear_lm_simple) %>%
+fit(data = train_tbl)
+
+my_prediction <- predict(workflow_obj, new_data = test_tbl)
+
+comparison <- my_prediction %>%
+  mutate(weight = test_tbl$weight) %>%
+  mutate(correct_price = test_tbl$price)
+
+
+#same for decision tree
+#decission tree model
+model_04_tree_decision_tree <- decision_tree(mode = "regression",
+                                             
+                                             # Set the values accordingly to get started
+                                             cost_complexity = 0.001,
+                                             tree_depth      = 5,
+                                             min_n           = 7)
+
+workflow_obj_tree <- workflow(bike_recipe, model_04_tree_decision_tree) %>%
+  fit(data = train_tbl)
+
+my_prediction_tree <- predict(workflow_obj_tree, new_data = test_tbl)
+
+comparison_tree <- my_prediction_tree%>%
+  mutate(weight = test_tbl$weight) %>%
+  mutate(correct_price = test_tbl$price)
+
+#random forest
+model_05_rand_forest <- rand_forest(
+  mode = "regression", mtry = 8, trees = 5000, min_n = 10
+)
+
+workflow_obj_forest <- workflow(bike_recipe, model_05_rand_forest) %>%
+  fit(data = train_tbl)
+
+my_prediction_forest <- predict(workflow_obj_forest, new_data = test_tbl)
+
+comparison_forest <- my_prediction_forest%>%
+  mutate(weight = test_tbl$weight) %>%
+  mutate(correct_price = test_tbl$price)
+```
+
+## Evaluate your model with the yardstick package
+
+I evaluate all 3 models.
+
+```{r}
+#Evalute models
+comparison %>%
+yardstick::metrics(truth = correct_price, estimate = .pred)
+
+comparison_tree %>%
+  yardstick::metrics(truth = correct_price, estimate = .pred)
+
+comparison_forest %>%
+  yardstick::metrics(truth = correct_price, estimate = .pred)
+```
+
+If we just look at metric RMSE, the random forest model performs the best (RMSE = 1274,37).
+
+As I mentioned in the beginning you could see on the scatter plot, 
+that there is no linear relation recognizable. Therefore it is no wonder, that
+the linear regression model performs worst (RMSE = 1617,32).
+
+
+

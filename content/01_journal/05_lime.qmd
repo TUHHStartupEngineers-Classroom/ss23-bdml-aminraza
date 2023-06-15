@@ -1,0 +1,139 @@
+---
+title: "Explaining Black-Box Models With LIME"
+author: "Amin Raza"
+
+output: 
+    html_document:
+        code_folding: hide
+---
+
+```{r setup, include=FALSE, warning=FALSE}
+knitr::opts_chunk$set(
+    echo = TRUE,
+    message = FALSE,
+    warning = FALSE
+    )
+```
+
+# Challenge
+
+## Part 1 - Recreate `plot_features()`
+
+We use the first case from business case. The table is shown below.
+
+```{r}
+
+read.csv("05_LIME_files/explanation_single.csv")
+
+```
+
+Here is the original plot:
+
+```{r}
+library(lime)
+library(tidyverse)
+
+explanation_single <- read.csv("05_LIME_files/explanation_single.csv")
+
+explanation_single %>% 
+  as.tibble()
+
+case_1 <- explanation_single %>%
+  filter(case == 1)
+
+case_1 %>%
+  plot_features()
+```
+
+Now we recreate the plot. For details regarding my approach please look at my comments in the code.
+
+```{r}
+###Recreate the plot above
+###Part 1
+
+#Step 1 choose relevant columns
+#Create a new column which indicates the sign of the value feature weight to color it later respectively 
+replica1_tbl <- case_1 %>%
+  select(feature_weight, feature_desc, case, label_prob) %>%
+  #To color the bars according to the sign of the value I deposited a value (Supports/Contradiction) which will tell the ggplot function which color the bar should have.
+  mutate(sign =  ifelse(feature_weight >= 0, "Supports", "Contradiction")) %>%
+  arrange(desc(abs(feature_weight))) 
+
+
+#Plot
+#the reorder() function in aes() tells ggplot to order the vertical axis from high value to low value
+#the last argument "fill" indicates that the bars in the chart will be coloured according to the values in the sign column (Supports/Contradicition)
+ggplot(data=replica1_tbl, aes(reorder(feature_desc, abs(feature_weight), sum), feature_weight, fill = sign)) +
+  #geom_col() indicates that we will plot a bar chart
+  geom_col() +
+  #I scanned the picture with a software and got the actual hex color values from the bars.
+  scale_fill_manual(values = c("Supports" = "#4983B2", "Contradiction" = "#B02427")) +
+  #Here I needed to use the flip function
+  coord_flip() +
+  labs(y= "Weight", x = "Feature") +
+  theme(legend.position = "bottom") +
+  guides(fill=guide_legend(title="")) +
+  #Okay here I have cheated :) In retrospect I could have taken the values from the tables, but somehow I didn't thought of it.
+  ggtitle(" Case: 1\n Label: No\n Probability: 0.67\n Explanation Fit: 0.35")
+```
+
+## Part 2 `Recreate plot_explanations()`
+
+No we take the data with multiple cases from the business case. The table is shown below.
+
+```{r}
+
+read.csv("05_LIME_files/explanation_multiple.csv")
+
+```
+
+Again here is the original plot for reference:
+
+```{r}
+
+explanation_multiple <- read.csv("05_LIME_files/explanation_multiple.csv")
+
+explanation_multiple %>% 
+  as.tibble()
+
+
+plot_explanations(explanation_multiple)
+```
+
+To be honest with this task I was at a loss until I finally took a look at the library lime from Thomas Pedersens’ github page.
+Here is my replica of the plot:
+
+```{r}
+#This step was necessary to order th case numbers on the x axis otherwise they would have been jumbled.
+#I am aware that this approach is very problem specific. In the lime library is (of course) a general solution approach to this problem.
+explanation_multiple$case <- factor(explanation_multiple$case,levels = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"))
+
+
+#I copied a lot from the github code because I really didn't have a clue
+
+ggplot(explanation_multiple, aes(case, feature_desc)) +
+  geom_tile(aes(fill = feature_weight)) +
+  scale_x_discrete('Case', expand = c(0, 0)) +
+  scale_y_discrete('Feature', expand = c(0, 0)) +
+  scale_fill_gradient2('Feature\nweight', low = 'firebrick', mid = '#f7f7f7', high = 'steelblue') +
+  theme(panel.border = element_rect(fill = NA, colour = 'grey60', linewidth =  1),
+        panel.grid = element_blank(),
+        legend.position = 'right',
+        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+  facet_wrap(~label) +
+  #With the following code I tried to mimic the theme from the original 
+  theme(legend.background = element_blank(), panel.background = element_blank(),axis.ticks = element_blank())
+
+
+#Close enough!
+```
+
+Somehow I can't find the issue now why the features here are sorted differently. 
+
+In the picture below, which is an export from the plot from my original code, you can see that the features are ordered right.
+
+![plot_explanations() replica](05_LIME_files/plot_explanations_replica.jpg)
+
+
+In the class notes is my original code with which it worked like I intended it. 
+

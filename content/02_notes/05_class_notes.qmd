@@ -1,8 +1,238 @@
 ---
 title: "Class Notes"
-author: "Joschka Schwarz"
+author: "Amin Raza"
 ---
 
-**IMPORTANT:** You can delete everything in here and start fresh. You might want to start by not deleting anything above this line until you know what that stuff is doing.
+My original code for the LIME challenge:
 
-This is an `.qmd` file. It is plain text with special features. Any time you write just like this, it will be compiled to normal text in the website. If you put a \# in front of your text, it will create a top level-header.
+```{r, eval=FALSE, }
+# LIME FEATURE EXPLANATION ----
+
+# 1. Setup ----
+
+# Load Libraries 
+
+library(h2o)
+library(recipes)
+library(readxl)
+library(tidyverse)
+library(tidyquant)
+library(lime)
+library(rsample)
+
+
+# Load Data
+employee_attrition_tbl <- read_csv("datasets-1067-1925-WA_Fn-UseC_-HR-Employee-Attrition.csv")
+definitions_raw_tbl    <- read_excel("data_definitions.xlsx", sheet = 1, col_names = FALSE)
+
+#Source Code was not given, lets hope I can take the table from the H2O Business Case
+
+employee_attrition_readable_tbl <- readRDS("employee_attrition_tbl.rds")
+
+# Split into test and train
+set.seed(seed = 1113)
+split_obj <- rsample::initial_split(employee_attrition_readable_tbl, prop = 0.85)
+
+# Assign training and test data
+train_readable_tbl <- training(split_obj)
+test_readable_tbl  <- testing(split_obj)
+
+# ML Preprocessing Recipe 
+recipe_obj <- recipe(Attrition ~ ., data = train_readable_tbl) %>%
+  step_zv(all_predictors()) %>%
+  step_mutate_at(c("JobLevel", "StockOptionLevel"), fn = as.factor) %>% 
+  prep()
+
+recipe_obj
+
+train_tbl <- bake(recipe_obj, new_data = train_readable_tbl)
+test_tbl  <- bake(recipe_obj, new_data = test_readable_tbl)
+
+# 2. Models ----
+
+h2o.init()
+
+#we calculate a new model 
+split_h2o <- h2o.splitFrame(as.h2o(train_tbl), ratios = c(0.85), seed = 1234)
+train_h2o <- split_h2o[[1]]
+valid_h2o <- split_h2o[[2]]
+test_h2o  <- as.h2o(test_tbl)
+
+# Set the target and predictors
+y <- "Attrition"
+x <- setdiff(names(train_h2o), y)
+
+#Compute the models
+
+automl_models_h2o <- h2o.automl(
+  x = x,
+  y = y,
+  training_frame    = train_h2o,
+  validation_frame  = valid_h2o,
+  leaderboard_frame = test_h2o,
+  max_runtime_secs  = 30,
+  nfolds            = 5 
+)
+
+automl_models_h2o@leaderboard
+
+#Take the best model from the calculation
+
+automl_leader <-h2o.getModel("StackedEnsemble_AllModels_2_AutoML_10_20230611_191016")
+automl_leader
+
+
+# 3. LIME ----
+
+# 3.1 Making Predictions ----
+
+predictions_tbl <- automl_leader %>% 
+  h2o.predict(newdata = as.h2o(test_tbl)) %>%
+  as.tibble() %>%
+  bind_cols(
+    test_tbl %>%
+      select(Attrition, EmployeeNumber)
+  )
+
+predictions_tbl
+
+#Let’s investigate the 1st employee, that did indeed leave the company:
+test_tbl %>%
+  slice(1) %>%
+  glimpse()
+
+
+
+# 3.2 Single Explanation ----
+
+explainer <- train_tbl %>%
+  select(-Attrition) %>%
+  lime(
+    model           = automl_leader,
+    bin_continuous  = TRUE,
+    n_bins          = 4,
+    quantile_bins   = TRUE
+  )
+
+explainer
+
+
+explanation_single <- test_tbl %>%
+  slice(1) %>%
+  select(-Attrition) %>%
+  lime::explain(
+    
+    # Pass our explainer object
+    explainer = explainer,
+    # Because it is a binary classification model: 1
+    n_labels   = 1,
+    # number of features to be returned
+    n_features = 8,
+    # number of localized linear models
+    n_permutations = 5000,
+    # Let's start with 1
+    kernel_width   = 1
+  )
+
+explanation
+
+explanation %>%
+  as.tibble() %>%
+  select(feature:prediction) 
+
+plot_features(explanation = explanation_single, ncol = 1)
+
+
+
+# 3.3 Multiple Explanations ----
+
+explanation_multiple <- test_tbl %>%
+  slice(1:20) %>%
+  select(-Attrition) %>%
+  lime::explain(
+    explainer = explainer,
+    n_labels   = 1,
+    n_features = 8,
+    n_permutations = 5000,
+    kernel_width   = 0.5
+  )
+
+explanation_multiple %>%
+  as.tibble()
+
+#Messy plot
+plot_features(explanation, ncol = 4)
+
+#Still hard to read
+plot_explanations(explanation_multiple)
+
+
+
+######CHALLENGE
+explanation_single %>% 
+  as.tibble()
+
+case_1 <- explanation_single %>%
+  filter(case == 1)
+
+case_1 %>%
+  plot_features()
+
+###Recreate the plot above
+###Part 1
+
+#Step 1 choose relevant columns
+#Create a new column which indicates the sign of the value feature weight to color it later respectivly 
+replica1_tbl <- case_1 %>%
+  select(feature_weight, feature_desc, case, label_prob) %>%
+  mutate(sign =  ifelse(feature_weight >= 0, "Supports", "Contradiction")) %>%
+  arrange(desc(abs(feature_weight))) 
+
+
+#plot
+ggplot(data=replica1_tbl, aes(reorder(feature_desc, abs(feature_weight), sum), feature_weight, fill = sign)) +
+  geom_col() +
+  scale_fill_manual(values = c("Supports" = "#4983B2", "Contradiction" = "#B02427")) +
+  coord_flip() +
+  labs(y= "Weight", x = "Feature") +
+  theme(legend.position = "bottom") +
+  guides(fill=guide_legend(title="")) +
+  ggtitle(" Case: 1\n Label: No\n Probability: 0.67\n Explanation Fit: 0.35")
+
+###Part 2 
+#Recreate the plot_explanations()
+
+
+
+plot_explanations(explanation_multiple)
+
+#explanation_multiple$feature_desc <- factor(
+#  explanation_multiple$feature_desc,
+#  levels = rev(unique(explanation_multiple$feature_desc[order(explanation_multiple$feature, explanation_multiple$feature_value)]))
+#)
+
+
+#Essentially I think I do the same as the code above but in a more specific way adapted to the data I work with
+explanation_multiple$case <- factor(explanation_multiple$case,levels = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"))
+
+
+#I copied a lot from the github code because I really didnt have a clue
+
+ggplot(explanation_multiple, aes(case, feature_desc)) +
+  geom_tile(aes(fill = feature_weight)) +
+  scale_x_discrete('Case', expand = c(0, 0)) +
+  scale_y_discrete('Feature', expand = c(0, 0)) +
+  scale_fill_gradient2('Feature\nweight', low = 'firebrick', mid = '#f7f7f7', high = 'steelblue') +
+  theme(panel.border = element_rect(fill = NA, colour = 'grey60', linewidth =  1),
+        panel.grid = element_blank(),
+        legend.position = 'right',
+        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+  facet_wrap(~label) +
+  theme(legend.background = element_blank(), panel.background = element_blank(),axis.ticks = element_blank())
+
+
+#Close enough!
+```
+
+
+
